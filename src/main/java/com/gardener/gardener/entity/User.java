@@ -10,7 +10,8 @@ import java.util.Collection;
 import java.util.List;
 
 @Entity
-@Getter @Setter
+@Getter
+@Setter
 @Builder
 @Table(name = "users")
 @NoArgsConstructor
@@ -23,7 +24,7 @@ public class User implements UserDetails {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String userName;
+    private String username;
 
     @Column(nullable = false)
     private String name;
@@ -41,18 +42,11 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Garden> gardens;
 
-    public User(Long id, UserRole role) {
-    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
-    @Override
-    public String getUsername() {
-        return null;
-    }
 
     @Override
     public boolean isAccountNonExpired() {

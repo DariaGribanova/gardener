@@ -2,12 +2,11 @@ package com.gardener.gardener.service;
 
 import com.gardener.gardener.dto.UserDto;
 import com.gardener.gardener.entity.User;
-import com.gardener.gardener.entity.UserRole;
 import com.gardener.gardener.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -63,7 +62,7 @@ public class UserService {
 
     private User mapToEntity(UserDto userDTO) {
         User user = new User();
-        user.setUserName(userDTO.getUserName());
+        user.setUsername(userDTO.getUserName());
         user.setName(userDTO.getName());
         user.setLastName(userDTO.getLastName());
         user.setPassword(userDTO.getPassword());
@@ -71,50 +70,25 @@ public class UserService {
         return user;
     }
 
-    /**
-     * Получение пользователя по имени пользователя
-     * <p>
-     * Нужен для Spring Security
-     *
-     * @return пользователь
-     */
     public UserDetailsService userDetailsService() {
-        return this::getByUsername;
+        return new UserDetailsService() {
+            @Override
+            public UserDetails loadUserByUsername(String username){
+                return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            }
+        };
     }
 
-    /**
-     * Получение текущего пользователя
-     *
-     * @return текущий пользователь
-     */
-    public User getCurrentUser() {
-        // Получение имени пользователя из контекста Spring Security
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return getByUsername(username);
-    }
-
-
-    /**
-     * Выдача прав администратора текущему пользователю
-     * <p>
-     * Нужен для демонстрации
-     */
-    @Deprecated
-    public void getAdmin() {
-        var user = getCurrentUser();
-        user.setRole(UserRole.MODER);
-        userRepository.save(user);
-    }
-    public User getByUsername(String username) {
-        return userRepository.findByUserName(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
-
-    }
     public User create(User user) {
-        if (userRepository.existsByUserName(user.getUsername())) {
+        if (userRepository.existsByUsername(user.getUsername())) {
             // Заменить на свои исключения
             throw new RuntimeException("Пользователь с таким именем уже существует");
         }
+
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Пользователь с таким email уже существует");
+        }
+
         return userRepository.save(user);
     }
 

@@ -1,9 +1,7 @@
 package com.gardener.gardener.controller;
 
-import com.gardener.gardener.dto.PlantCultureDto;
 import com.gardener.gardener.dto.RegionDto;
 import com.gardener.gardener.service.RegionService;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,7 +15,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/region")
 @RequiredArgsConstructor
-@Tag(name = "Регионы")
 public class RegionController {
 
     @Autowired
