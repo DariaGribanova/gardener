@@ -25,7 +25,7 @@ public class Plant {
     private PlantCulture plantCulture;
 
     @Column(nullable = false)
-    private LocalDate year;
+    private Long year;
 
     @OneToMany(mappedBy = "plant", cascade = CascadeType.ALL)
     private List<WorkProgress> workProgresses;

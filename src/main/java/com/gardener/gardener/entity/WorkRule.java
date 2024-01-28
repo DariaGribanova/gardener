@@ -2,7 +2,7 @@ package com.gardener.gardener.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.time.LocalDate;
+import java.time.MonthDay;
 import java.util.List;
 
 @Entity
@@ -27,10 +27,10 @@ public class WorkRule {
     private Work work;
 
     @Column(nullable = false)
-    private LocalDate dateStart;
+    private MonthDay dateStart;
 
     @Column(nullable = false)
-    private LocalDate dateEnd;
+    private MonthDay dateEnd;
 
     @OneToMany(cascade = CascadeType.ALL)
     private List<WorkProgress> workProgresses;

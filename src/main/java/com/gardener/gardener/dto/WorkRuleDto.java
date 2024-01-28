@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
+import java.time.MonthDay;
 
 @Data
 @NoArgsConstructor
@@ -14,6 +14,6 @@ public class WorkRuleDto {
     private Long regionId;
     private Long plantCultureId;
     private Long workId;
-    private LocalDate dateStart;
-    private LocalDate dateEnd;
+    private MonthDay dateStart;
+    private MonthDay dateEnd;
 }

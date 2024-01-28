@@ -12,4 +12,5 @@ public class WorkProgressDto {
     private Long plantId;
     private Long workRuleId;
     private boolean isDone;
+    private Long year;
 }

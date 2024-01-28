@@ -20,4 +20,7 @@ public class WorkProgress {
 
     @Column(nullable = false)
     private boolean isDone;
+
+    @Column(nullable = false)
+    private Long year;
 }

@@ -14,6 +14,6 @@ public class PlantDto {
     private String name;
     private Long gardenId;
     private Long plantCultureId;
-    private LocalDate year;
+    private Long year;
 }
 
