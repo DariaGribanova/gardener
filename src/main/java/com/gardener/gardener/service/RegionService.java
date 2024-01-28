@@ -104,11 +104,27 @@ public class RegionService {
             }
             Region region = regionRepository.findById(parentId).orElse(null);
             while (region != null && region.getParentRegion() != null) {
-                lists.add(regionRepository.findByParentRegionId(region.getParentRegion().getId()));
+                List<Region> list = regionRepository.findByParentRegionId(region.getParentRegion().getId());
+                for (Region currentRegion : new ArrayList<>(list)) {
+                    if (currentRegion.getId().equals(region.getId())) {
+                        list.remove(currentRegion);  // Удаляем элемент с желаемым id
+                        list.add(0, currentRegion);  // Добавляем его на первое место
+                        break;  // Выходим из цикла после перемещения первого вхождения
+                    }
+                }
+                lists.add(list);
                 region = regionRepository.findById(region.getParentRegion().getId()).orElse(null);
             }
             if (region != null && region.getParentRegion() == null) {
-                lists.add(regionRepository.findByParentRegionIdIsNull());
+                List<Region> list = regionRepository.findByParentRegionIdIsNull();
+                for (Region currentRegion : new ArrayList<>(list)) {
+                    if (currentRegion.getId().equals(region.getId())) {
+                        list.remove(currentRegion);  // Удаляем элемент с желаемым id
+                        list.add(0, currentRegion);  // Добавляем его на первое место
+                        break;  // Выходим из цикла после перемещения первого вхождения
+                    }
+                }
+                lists.add(list);
             }
         }
         return lists;
