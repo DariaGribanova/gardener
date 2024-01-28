@@ -1,4 +1,4 @@
-package com.gardener.gardener.dto;
+package com.gardener.gardener.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

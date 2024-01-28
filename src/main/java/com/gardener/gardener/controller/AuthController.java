@@ -1,9 +1,9 @@
 package com.gardener.gardener.controller;
 
-import com.gardener.gardener.dto.JwtAuthenticationResponse;
-import com.gardener.gardener.dto.RefreshTokenRequest;
-import com.gardener.gardener.dto.SignInRequest;
-import com.gardener.gardener.dto.SignUpRequest;
+import com.gardener.gardener.dto.response.JwtAuthenticationResponse;
+import com.gardener.gardener.dto.request.RefreshTokenRequest;
+import com.gardener.gardener.dto.request.SignInRequest;
+import com.gardener.gardener.dto.request.SignUpRequest;
 import com.gardener.gardener.service.AuthenticationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

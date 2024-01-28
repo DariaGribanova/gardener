@@ -1,4 +1,4 @@
-package com.gardener.gardener.dto;
+package com.gardener.gardener.dto.request;
 
 import lombok.Data;
 
