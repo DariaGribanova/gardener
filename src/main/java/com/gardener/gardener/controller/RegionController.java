@@ -1,6 +1,7 @@
 package com.gardener.gardener.controller;
 
 import com.gardener.gardener.dto.RegionDto;
+import com.gardener.gardener.entity.Region;
 import com.gardener.gardener.service.RegionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +67,17 @@ public class RegionController {
     @GetMapping("/root")
     public ResponseEntity<List<RegionDto>> getRootRegions() {
         List<RegionDto> rootRegions = regionService.getRootRegions();
+        return ResponseEntity.ok(rootRegions);
+    }
+
+    @GetMapping("/hierarchy/{parentId}")
+    public ResponseEntity<List<List<Region>>> getHierarchy(@PathVariable Long parentId) {
+        List<List<Region>> rootRegions = regionService.getRegionHierarchy(parentId);
+        return ResponseEntity.ok(rootRegions);
+    }
+    @GetMapping("/hierarchy/")
+    public ResponseEntity<List<List<Region>>> getHierarchyRoot() {
+        List<List<Region>> rootRegions = regionService.getRegionHierarchy(null);
         return ResponseEntity.ok(rootRegions);
     }
 

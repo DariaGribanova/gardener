@@ -3,11 +3,13 @@ package com.gardener.gardener.service;
 import com.gardener.gardener.dto.PlantCultureDto;
 import com.gardener.gardener.dto.RegionDto;
 import com.gardener.gardener.entity.Region;
+import com.gardener.gardener.entity.WorkRule;
 import com.gardener.gardener.repository.RegionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +35,7 @@ public class RegionService {
             return null;
         }
     }
+
     public RegionDto createRegion(RegionDto regionDto) {
         Region region = convertToEntity(regionDto);
         return convertToDto(regionRepository.save(region));
@@ -58,6 +61,7 @@ public class RegionService {
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
+
     public List<RegionDto> getRootRegions() {
         List<Region> regions = regionRepository.findByParentRegionIdIsNull();
         return regions.stream()
@@ -86,6 +90,28 @@ public class RegionService {
             regionDto.setParentRegionId(region.getParentRegion().getId());
         }
         return regionDto;
+    }
+
+
+    public List<List<Region>> getRegionHierarchy(Long parentId) {
+        List<List<Region>> lists = new ArrayList<>();
+        if (parentId == null) {
+            lists.add(regionRepository.findByParentRegionIdIsNull());
+            return lists;
+        } else {
+            if (!regionRepository.findByParentRegionId(parentId).isEmpty()) {
+                lists.add(regionRepository.findByParentRegionId(parentId));
+            }
+            Region region = regionRepository.findById(parentId).orElse(null);
+            while (region != null && region.getParentRegion() != null) {
+                lists.add(regionRepository.findByParentRegionId(region.getParentRegion().getId()));
+                region = regionRepository.findById(region.getParentRegion().getId()).orElse(null);
+            }
+            if (region != null && region.getParentRegion() == null) {
+                lists.add(regionRepository.findByParentRegionIdIsNull());
+            }
+        }
+        return lists;
     }
 
 }
