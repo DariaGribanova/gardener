@@ -13,13 +13,13 @@ public class WorkDto {
 
     private String name;
 
-    private int tempStart;
+    private Long tempStart;
 
-    private int tempEnd;
+    private Long tempEnd;
 
     private String role;
 
-    private int ageStart;
+    private Long ageStart;
 
-    private int ageEnd;
+    private Long ageEnd;
 }

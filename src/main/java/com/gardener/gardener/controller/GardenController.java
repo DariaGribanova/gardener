@@ -1,9 +1,11 @@
 package com.gardener.gardener.controller;
 import com.gardener.gardener.dto.GardenDto;
 import com.gardener.gardener.service.GardenService;
+import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,7 +17,8 @@ public class GardenController {
     private GardenService gardenService;
 
     @GetMapping("/{id}")
-    public ResponseEntity<GardenDto> getGarden(@PathVariable Long id) {
+    public ResponseEntity<GardenDto> getGarden(@PathVariable Long id, @ApiParam(hidden = true) Authentication authentication) {
+        String userNickname = authentication.getName();
         GardenDto gardenDTO = gardenService.getGardenById(id);
         return ResponseEntity.ok(gardenDTO);
     }

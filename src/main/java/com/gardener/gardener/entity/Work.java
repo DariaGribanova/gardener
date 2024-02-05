@@ -17,20 +17,20 @@ public class Work {
     private String name;
 
     @Column(nullable = false)
-    private int tempStart;
+    private Long tempStart;
 
     @Column(nullable = false)
-    private int tempEnd;
+    private Long tempEnd;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Precipitation role;
 
     @Column(nullable = false)
-    private int ageStart;
+    private Long ageStart;
 
     @Column(nullable = false)
-    private int ageEnd;
+    private Long ageEnd;
 
     @OneToMany(mappedBy = "work", cascade = CascadeType.ALL)
     private List<WorkRule> workRules;

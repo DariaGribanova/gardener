@@ -95,7 +95,8 @@ public class WorkProgressService {
             Set<WorkRule> workRules = new HashSet<>();
             // Добавляем все работы в множество
             for (WorkRule workRule : plantCulture.getWorkRules()) {
-                if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)) {
+                if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)
+                        && plant.getGarden().getRegion() == workRule.getRegion() && isWorkRuleInAgeRange(plant, workRule)) {
                     WorkProgress workProgress = createWorkProgressForPlantAndWorkRule(plant, workRule);
                     workProgressList.add(workProgress);
                 }
@@ -104,7 +105,8 @@ public class WorkProgressService {
             PlantCulture parentCulture = plantCulture.getParentCulture();
             while (parentCulture != null) {
                 for (WorkRule workRule : plantCulture.getWorkRules()) {
-                    if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)) {
+                    if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)
+                            && plant.getGarden().getRegion() == workRule.getRegion() && isWorkRuleInAgeRange(plant, workRule)) {
                         if (!works.contains(workRule.getWork())) {
                             workRules.add(workRule);
                         }
@@ -130,36 +132,38 @@ public class WorkProgressService {
 
         Map<PlantCulture, Set<Work>> workMap = new HashMap<>();
 
-            PlantCulture plantCulture = plant.getPlantCulture();
+        PlantCulture plantCulture = plant.getPlantCulture();
 
-            // Получаем или создаем множество Work для данной PlantCulture
-            Set<Work> works = workMap.computeIfAbsent(plantCulture, k -> new HashSet<>());
-            Set<WorkRule> workRules = new HashSet<>();
-            // Добавляем все работы в множество
-            for (WorkRule workRule : plantCulture.getWorkRules()) {
-                if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)) {
-                    WorkProgress workProgress = createWorkProgressForPlantAndWorkRule(plant, workRule);
-                    workProgressList.add(workProgress);
-                }
-            }
-            // Проходим по цепочке родителей PlantCulture
-            PlantCulture parentCulture = plantCulture.getParentCulture();
-            while (parentCulture != null) {
-                for (WorkRule workRule : plantCulture.getWorkRules()) {
-                    if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)) {
-                        if (!works.contains(workRule.getWork())) {
-                            workRules.add(workRule);
-                        }
-                        works.add(workRule.getWork());
-                    }
-                }
-                parentCulture = parentCulture.getParentCulture();
-            }
-
-            for (WorkRule workRule : workRules) {
+        // Получаем или создаем множество Work для данной PlantCulture
+        Set<Work> works = workMap.computeIfAbsent(plantCulture, k -> new HashSet<>());
+        Set<WorkRule> workRules = new HashSet<>();
+        // Добавляем все работы в множество
+        for (WorkRule workRule : plantCulture.getWorkRules()) {
+            if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)
+                    && plant.getGarden().getRegion() == workRule.getRegion() && isWorkRuleInAgeRange(plant, workRule)) {
                 WorkProgress workProgress = createWorkProgressForPlantAndWorkRule(plant, workRule);
                 workProgressList.add(workProgress);
             }
+        }
+        // Проходим по цепочке родителей PlantCulture
+        PlantCulture parentCulture = plantCulture.getParentCulture();
+        while (parentCulture != null) {
+            for (WorkRule workRule : plantCulture.getWorkRules()) {
+                if (isWorkRuleInDateRange(workRule, currentDate, endDate) && isWorkProgressExistsForWorkRule(plant, workRule)
+                        && plant.getGarden().getRegion() == workRule.getRegion() && isWorkRuleInAgeRange(plant, workRule)) {
+                    if (!works.contains(workRule.getWork())) {
+                        workRules.add(workRule);
+                    }
+                    works.add(workRule.getWork());
+                }
+            }
+            parentCulture = parentCulture.getParentCulture();
+        }
+
+        for (WorkRule workRule : workRules) {
+            WorkProgress workProgress = createWorkProgressForPlantAndWorkRule(plant, workRule);
+            workProgressList.add(workProgress);
+        }
         workProgressRepository.saveAll(workProgressList);
     }
 
@@ -176,6 +180,13 @@ public class WorkProgressService {
 
         // Проверка нахождения даты начала и окончания работы в указанном диапазоне
         return !(workRuleEndDate.isBefore(ruleStartDate) || workRuleStartDate.isAfter(ruleEndDate));
+    }
+
+    private boolean isWorkRuleInAgeRange(Plant plant, WorkRule workRule) {
+        Long year = plant.getYear();
+        Long dateStart = workRule.getWork().getAgeStart();
+        Long dateEnd = workRule.getWork().getAgeEnd();
+        return (year >= dateStart && year <= dateEnd);
     }
 
     private boolean isWorkProgressExistsForWorkRule(Plant plant, WorkRule workRule) {
