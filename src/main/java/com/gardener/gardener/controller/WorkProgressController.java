@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/work-progresses")
 public class WorkProgressController {
@@ -37,5 +39,11 @@ public class WorkProgressController {
     public ResponseEntity<?> deleteWorkProgress(@PathVariable Long id) {
         workProgressService.deleteWorkProgress(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/rec")
+    public ResponseEntity<?> getRecWorkProgress() {
+        List<WorkProgressDto> createdWorkProgress = workProgressService.getRecWorkProgress();
+        return ResponseEntity.ok(createdWorkProgress);
     }
 }

@@ -5,11 +5,16 @@ import com.gardener.gardener.entity.*;
 import com.gardener.gardener.repository.PlantRepository;
 import com.gardener.gardener.repository.WorkProgressRepository;
 import com.gardener.gardener.repository.WorkRuleRepository;
+import com.gardener.gardener.weather.WeatherForecastData;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.Response;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.MonthDay;
 import java.util.*;
@@ -214,5 +219,25 @@ public class WorkProgressService {
         workProgress.setDone(false);
         workProgress.setYear((long) LocalDate.now().getYear());
         return workProgress;
+    }
+
+    public List<WorkProgressDto> getRecWorkProgress() {
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("http://api.openweathermap.org/data/2.5/forecast?lat=" + 44.34 + "&lon=" + 10.99 + "&appid=" + "8f4f47f0de36155cbb79dd619a280eb3")
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            if (response.isSuccessful()) {
+                String jsonResponse = response.body().string();
+                WeatherForecastData weatherData = WeatherForecastData.fromJson(jsonResponse);
+                System.out.println(weatherData.getList()[0].getMain().getTemp());
+            } else {
+                System.out.println("Ошибка: " + response);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ArrayList<>();
     }
 }

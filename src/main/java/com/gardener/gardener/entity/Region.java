@@ -18,6 +18,12 @@ public class Region {
     @Column(nullable = false)
     private String shortAddress;
 
+    @Column(nullable = false)
+    private double lat;
+
+    @Column(nullable = false)
+    private double lon;
+
     @ManyToOne
     @JoinColumn(name = "parent_region_id")
     private Region parentRegion;

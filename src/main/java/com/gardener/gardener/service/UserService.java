@@ -26,6 +26,12 @@ public class UserService {
         return mapToDto(user);
     }
 
+    public User getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + username));
+        return user;
+    }
+
     public UserDto createUser(UserDto userDTO) {
         User user = mapToEntity(userDTO);
         user = userRepository.save(user);
