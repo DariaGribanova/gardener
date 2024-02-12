@@ -22,7 +22,7 @@ public class PlantCulture {
     @Column(nullable = false)
     private boolean displayRoot;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "plantCulture")
     private List<WorkRule> workRules;
 
 }

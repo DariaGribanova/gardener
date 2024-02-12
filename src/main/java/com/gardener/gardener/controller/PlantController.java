@@ -1,6 +1,7 @@
 package com.gardener.gardener.controller;
 
 import com.gardener.gardener.dto.PlantDto;
+import com.gardener.gardener.dto.request.PlantRequestDto;
 import com.gardener.gardener.service.PlantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +23,7 @@ public class PlantController {
     }
 
     @PostMapping
-    public ResponseEntity<PlantDto> createPlant(@RequestBody PlantDto plantDTO) {
+    public ResponseEntity<PlantDto> createPlant(@RequestBody PlantRequestDto plantDTO) {
         PlantDto createdPlant = plantService.createPlant(plantDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPlant);
     }

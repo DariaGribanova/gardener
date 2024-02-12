@@ -17,7 +17,7 @@ public class WorkDto {
 
     private Long tempEnd;
 
-    private String role;
+    private String precipitation;
 
     private Long ageStart;
 

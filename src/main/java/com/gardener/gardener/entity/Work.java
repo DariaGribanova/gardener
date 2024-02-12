@@ -24,7 +24,7 @@ public class Work {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Precipitation role;
+    private Precipitation precipitation;
 
     @Column(nullable = false)
     private Long ageStart;

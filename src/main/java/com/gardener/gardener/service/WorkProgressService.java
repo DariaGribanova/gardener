@@ -191,7 +191,7 @@ public class WorkProgressService {
         Long year = plant.getYear();
         Long dateStart = workRule.getWork().getAgeStart();
         Long dateEnd = workRule.getWork().getAgeEnd();
-        return (year >= dateStart && year <= dateEnd);
+        return (LocalDate.now().getYear() - year >= dateStart && LocalDate.now().getYear() - year <= dateEnd);
     }
 
     private boolean isWorkProgressExistsForWorkRule(Plant plant, WorkRule workRule) {
@@ -199,11 +199,12 @@ public class WorkProgressService {
 
         // Получение списка всех WorkProgress для данного растения
         List<WorkProgress> workProgresses = plant.getWorkProgresses();
-
         // Поиск существующего WorkProgress для данного правила работы
-        for (WorkProgress progress : workProgresses) {
-            if (progress.getWorkRule().equals(workRule) && (progress.getYear() != LocalDate.now().getYear())) {
-                return false; // WorkProgress уже существует для данного Plant и WorkRule
+        if (workProgresses != null) {
+            for (WorkProgress progress : workProgresses) {
+                if (progress.getWorkRule().equals(workRule) && (progress.getYear() != LocalDate.now().getYear())) {
+                    return false; // WorkProgress уже существует для данного Plant и WorkRule
+                }
             }
         }
 

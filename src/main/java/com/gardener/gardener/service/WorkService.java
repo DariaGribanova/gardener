@@ -56,7 +56,7 @@ public class WorkService {
         work.setName(workDto.getName());
         work.setTempStart(workDto.getTempStart());
         work.setTempEnd(workDto.getTempEnd());
-        work.setRole(Precipitation.valueOf(workDto.getRole()));
+        work.setPrecipitation(Precipitation.valueOf(workDto.getPrecipitation()));
         work.setAgeStart(workDto.getAgeStart());
         work.setAgeEnd(workDto.getAgeEnd());
         return work;
@@ -74,7 +74,7 @@ public class WorkService {
         dto.setName(work.getName());
         dto.setTempStart(work.getTempStart());
         dto.setTempEnd(work.getTempEnd());
-        dto.setRole(work.getRole().toString());
+        dto.setPrecipitation(work.getPrecipitation().toString());
         dto.setAgeStart(work.getAgeStart());
         dto.setAgeEnd(work.getAgeEnd());
         return dto;

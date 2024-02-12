@@ -32,6 +32,6 @@ public class WorkRule {
     @Column(nullable = false)
     private MonthDay dateEnd;
 
-    @OneToMany(cascade = CascadeType.ALL)
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "workRule")
     private List<WorkProgress> workProgresses;
 }

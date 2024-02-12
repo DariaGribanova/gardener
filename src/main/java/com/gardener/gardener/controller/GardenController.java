@@ -1,6 +1,8 @@
 package com.gardener.gardener.controller;
 import com.gardener.gardener.dto.GardenDto;
+import com.gardener.gardener.dto.request.GardenRequestDto;
 import com.gardener.gardener.service.GardenService;
+import com.gardener.gardener.service.UserService;
 import io.swagger.annotations.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,15 +20,17 @@ public class GardenController {
 
     @GetMapping("/{id}")
     public ResponseEntity<GardenDto> getGarden(@PathVariable Long id, @ApiParam(hidden = true) Authentication authentication) {
-        String userNickname = authentication.getName();
         GardenDto gardenDTO = gardenService.getGardenById(id);
         return ResponseEntity.ok(gardenDTO);
     }
 
     @PostMapping
-    public ResponseEntity<GardenDto> createGarden(@RequestBody GardenDto gardenDTO) {
-        GardenDto createdGarden = gardenService.createGarden(gardenDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdGarden);
+    public ResponseEntity<GardenDto> createGarden(@RequestBody GardenRequestDto gardenDTO, @ApiParam(hidden = true) Authentication authentication) {
+        GardenDto createdGarden = new GardenDto();
+        createdGarden.setName(gardenDTO.getName());
+        createdGarden.setRegionId(gardenDTO.getRegionId());
+        createdGarden.setUserId(Long.valueOf(authentication.getName()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(gardenService.createGarden(createdGarden));
     }
 
     @PutMapping("/{id}")
