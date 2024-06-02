@@ -7,6 +7,8 @@ public class WeatherData {
     private Weather[] weather;
     private String base;
     private Main main;
+
+    private Long dt;
     // Другие поля
 
 
@@ -45,5 +47,14 @@ public class WeatherData {
     public void setMain(Main main) {
         this.main = main;
     }
+
+    public Long getDt() {
+        return dt;
+    }
+
+    public void setDt(Long dt) {
+        this.dt = dt;
+    }
+
 }
 

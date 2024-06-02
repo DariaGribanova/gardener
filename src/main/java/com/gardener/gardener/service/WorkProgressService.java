@@ -1,10 +1,16 @@
 package com.gardener.gardener.service;
 
+import com.gardener.gardener.dto.UserDto;
 import com.gardener.gardener.dto.WorkProgressDto;
+import com.gardener.gardener.dto.response.Recommendations;
+import com.gardener.gardener.dto.response.WorkProgressResponseDto;
+import com.gardener.gardener.dto.response.Works;
 import com.gardener.gardener.entity.*;
+import com.gardener.gardener.repository.GardenRepository;
 import com.gardener.gardener.repository.PlantRepository;
 import com.gardener.gardener.repository.WorkProgressRepository;
 import com.gardener.gardener.repository.WorkRuleRepository;
+import com.gardener.gardener.weather.WeatherData;
 import com.gardener.gardener.weather.WeatherForecastData;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
@@ -15,8 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.MonthDay;
+import java.time.*;
 import java.util.*;
 
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -34,6 +39,8 @@ public class WorkProgressService {
 
     @Autowired
     private WorkRuleRepository workRuleRepository;
+    @Autowired
+    private GardenRepository gardenRepository;
 
 
     public WorkProgressDto getWorkProgressById(Long id) {
@@ -222,23 +229,137 @@ public class WorkProgressService {
         return workProgress;
     }
 
-    public List<WorkProgressDto> getRecWorkProgress() {
+    public Works getRecWorkProgress(Long gardenId) {
+        Garden garden = gardenRepository.findById(gardenId).orElseThrow(() -> new EntityNotFoundException("Garden not found with id: " + gardenId));
+        Region region = garden.getRegion();
+        List<WorkProgress> workProgresses = new ArrayList<>();
+        for (Plant plant: garden.getPlants()){
+            workProgresses.addAll(plant.getWorkProgresses());
+        }
         OkHttpClient client = new OkHttpClient();
         Request request = new Request.Builder()
-                .url("http://api.openweathermap.org/data/2.5/forecast?lat=" + 44.34 + "&lon=" + 10.99 + "&appid=" + "8f4f47f0de36155cbb79dd619a280eb3")
+                .url("http://api.openweathermap.org/data/2.5/forecast?lat=" + region.getLat() + "&lon=" + region.getLon() + "&appid=" + "8f4f47f0de36155cbb79dd619a280eb3")
                 .build();
         try {
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
                 String jsonResponse = response.body().string();
                 WeatherForecastData weatherData = WeatherForecastData.fromJson(jsonResponse);
-                System.out.println(weatherData.getList()[0].getMain().getTemp());
+                return getWorks(weatherData.getList(), workProgresses);
+                //System.out.println(weatherData.getList()[0].getMain().getTemp());
             } else {
                 System.out.println("Ошибка: " + response);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new ArrayList<>();
+        return null;
     }
+
+    public Works getWorks(WeatherData[] weatherData, List<WorkProgress> workProgresses) {
+        Works works = new Works();
+        List<WorkProgressResponseDto> completed = new ArrayList<>();
+        List<WorkProgressResponseDto> unFulfilled = new ArrayList<>();
+        for (WorkProgress workProgress: workProgresses){
+            if (workProgress.isDone()){
+                completed.add(mapToWorkProgressResponseDto(workProgress));
+            } else {
+                unFulfilled.add(mapToWorkProgressResponseDto(workProgress));
+            }
+        }
+        works.setCompleted(completed);
+        works.setUnFulfilled(unFulfilled);
+        Recommendations recommendations = getRecs(weatherData, workProgresses);
+        works.setRecs(recommendations);
+        return works;
+    }
+
+
+    public Recommendations getRecs(WeatherData[] weatherData, List<WorkProgress> workProgresses) {
+        Recommendations recommendations = new Recommendations();
+        List<WorkProgressResponseDto> today = new ArrayList<>();
+        List<WorkProgressResponseDto> immediate = new ArrayList<>();
+        List<WorkProgressResponseDto> forecast = new ArrayList<>();
+        for (WorkProgress workProgress: workProgresses){
+            if (!workProgress.isDone() && workProgress.getYear() == LocalDateTime.now().getYear()) {
+                for (WeatherData wData : weatherData) {
+                    LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(wData.getDt()), ZoneOffset.UTC);
+                    if (isSuitableWork(workProgress, wData) && localDateTime.getDayOfMonth() == LocalDateTime.now().getDayOfMonth()) {
+                            today.add(mapToWorkProgressResponseDto(workProgress));
+                            break;
+                    } else if (isSuitableWork(workProgress, wData)){
+                            immediate.add(mapToWorkProgressResponseDto(workProgress));
+                            break;
+                    } else if (isDateInMonth(workProgress.getWorkRule())){
+                        forecast.add(mapToWorkProgressResponseDto(workProgress));
+                        break;
+                    }
+                }
+            }
+        }
+        recommendations.setToday(today);
+        recommendations.setImmediate(immediate);
+        recommendations.setForecast(forecast);
+        return recommendations;
+    }
+
+    private WorkProgressResponseDto mapToWorkProgressResponseDto(WorkProgress workProgress) {
+        WorkProgressResponseDto workProgressResponseDto = new WorkProgressResponseDto();
+        workProgressResponseDto.setId(workProgress.getId());
+        workProgressResponseDto.setWorkName(workProgress.getWorkRule().getWork().getName());
+        workProgressResponseDto.setPlantName(workProgress.getPlant().getName());
+        workProgressResponseDto.setDone(workProgress.isDone());
+        workProgressResponseDto.setYear(workProgress.getYear());
+        return workProgressResponseDto;
+    }
+
+
+    private boolean isSuitableWork(WorkProgress workProgress, WeatherData weatherData) {
+        // Проверить, подходит ли работа для выполнения сегодня, учитывая погоду
+        return isTemperatureInRange(workProgress.getWorkRule().getWork(), weatherData) &&
+                isPrecipitationSuitable(workProgress.getWorkRule().getWork(), weatherData) &&
+                isDateInRange(workProgress.getWorkRule(), weatherData);
+    }
+
+    private boolean isDateInRange(WorkRule workRule, WeatherData weatherData) {
+        // Проверить, попадает ли дата работы в диапазон дат прогноза погоды
+        LocalDate startDate = LocalDate.of(LocalDate.now().getYear(), workRule.getDateStart().getMonth(), workRule.getDateStart().getDayOfMonth());
+        LocalDate endDate = LocalDate.of(LocalDate.now().getYear(), workRule.getDateEnd().getMonth(), workRule.getDateEnd().getDayOfMonth());
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(Instant.ofEpochSecond(weatherData.getDt()), ZoneOffset.UTC);
+        LocalDate forecastDate = LocalDate.of(localDateTime.getYear(), localDateTime.getMonth(), localDateTime.getDayOfMonth());
+        return (forecastDate.isEqual(startDate) || forecastDate.isAfter(startDate)) &&
+                (forecastDate.isEqual(endDate) || forecastDate.isBefore(endDate));
+    }
+
+    private boolean isDateInMonth(WorkRule workRule) {
+        LocalDate startDate = LocalDate.of(LocalDate.now().getYear(), workRule.getDateStart().getMonth(), workRule.getDateStart().getDayOfMonth());
+        LocalDate forecastDate = LocalDate.now();
+        return (forecastDate.isAfter(startDate));
+    }
+
+    private boolean isTemperatureInRange(Work work, WeatherData weatherData) {
+        // Проверить, находится ли температура в допустимом диапазоне для работы
+        double tempInCelsius = weatherData.getMain().getTemp() - 273.15; // Convert temperature to Celsius
+        return tempInCelsius >= work.getTempStart() && tempInCelsius <= work.getTempEnd();
+    }
+
+    private boolean isPrecipitationSuitable(Work work, WeatherData weatherData) {
+        // Проверить, соответствует ли осадкам работа
+        String precipitationType = weatherData.getWeather()[0].getMain(); // Assuming only one weather condition for simplicity
+        switch (work.getPrecipitation()) {
+            case NOPRECIPITATION:
+                return !precipitationType.contains("rain") && !precipitationType.contains("snow");
+            case WITHPRECIPITATION:
+                return precipitationType.contains("rain") || precipitationType.contains("snow");
+            case BEFORETHERAIN:
+                // Предполагаем, что работа возможна перед любыми осадками
+                return true;
+            case DOESNTMATTER:
+                return true; // Не важно, какие осадки
+            default:
+                return false;
+        }
+    }
+
+
 }

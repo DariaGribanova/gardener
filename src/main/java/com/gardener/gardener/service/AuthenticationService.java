@@ -43,14 +43,13 @@ public class AuthenticationService {
     }
 
     public JwtAuthenticationResponse signIn(SignInRequest request) {
-        Long id = userService.getUserByUsername(request.getUsername()).getId();
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                id,
+                request.getUsername(),
                 request.getPassword()
         ));
         var user = userService
                 .userDetailsService()
-                .loadUserByUsername(String.valueOf(id));
+                .loadUserByUsername(request.getUsername());
         var jwt = jwtService.generateToken(user);
         var refreshToken = jwtService.generateRefreshToken(new HashMap<>(), user);
         JwtAuthenticationResponse jwtAuthenticationResponse = new JwtAuthenticationResponse();

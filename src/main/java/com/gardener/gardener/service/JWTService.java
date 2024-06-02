@@ -21,7 +21,7 @@ public class JWTService {
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder().setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(Date.from(Instant.now().plus(Duration.ofDays(1))))
+                .setExpiration(Date.from(Instant.now().plus(Duration.ofDays(14))))
                 .signWith(getSiginKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -29,7 +29,7 @@ public class JWTService {
     public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder().setClaims(extraClaims).setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(Date.from(Instant.now().plus(Duration.ofDays(7))))
+                .setExpiration(Date.from(Instant.now().plus(Duration.ofDays(365))))
                 .signWith(getSiginKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

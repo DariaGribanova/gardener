@@ -1,6 +1,9 @@
 package com.gardener.gardener.controller;
 import com.gardener.gardener.dto.GardenDto;
+import com.gardener.gardener.dto.UserDto;
 import com.gardener.gardener.dto.request.GardenRequestDto;
+import com.gardener.gardener.dto.response.GardenResponseDto;
+import com.gardener.gardener.entity.Garden;
 import com.gardener.gardener.service.GardenService;
 import com.gardener.gardener.service.UserService;
 import io.swagger.annotations.ApiParam;
@@ -12,11 +15,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/gardens")
 public class GardenController {
     @Autowired
     private GardenService gardenService;
+    @Autowired
+    private UserService userService;
 
     @GetMapping("/{id}")
     public ResponseEntity<GardenDto> getGarden(@PathVariable Long id, @ApiParam(hidden = true) Authentication authentication) {
@@ -24,12 +31,18 @@ public class GardenController {
         return ResponseEntity.ok(gardenDTO);
     }
 
+    @GetMapping("/get_gardens")
+    public ResponseEntity<List<GardenResponseDto>> getGardens(@ApiParam(hidden = true) Authentication authentication) {
+        List<GardenResponseDto> gardenDto = userService.getGardensByUsername(authentication.getName());
+        return ResponseEntity.ok(gardenDto);
+    }
+
     @PostMapping
     public ResponseEntity<GardenDto> createGarden(@RequestBody GardenRequestDto gardenDTO, @ApiParam(hidden = true) Authentication authentication) {
         GardenDto createdGarden = new GardenDto();
         createdGarden.setName(gardenDTO.getName());
         createdGarden.setRegionId(gardenDTO.getRegionId());
-        createdGarden.setUserId(Long.valueOf(authentication.getName()));
+        createdGarden.setUserId(userService.getUserByUsername(authentication.getName()).getId());
         return ResponseEntity.status(HttpStatus.CREATED).body(gardenService.createGarden(createdGarden));
     }
 

@@ -1,6 +1,6 @@
-package com.gardener.gardener.dto;
+package com.gardener.gardener.dto.response;
 
-import com.gardener.gardener.entity.UserRole;
+import com.gardener.gardener.entity.Region;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,9 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto {
+public class GardenResponseDto {
     private Long id;
-    private String userName;
     private String name;
-    private String lastName;
+    private Region region;
 }

@@ -1,6 +1,10 @@
 package com.gardener.gardener.service;
 
+import com.gardener.gardener.dto.PlantCultureDto;
 import com.gardener.gardener.dto.UserDto;
+import com.gardener.gardener.dto.response.GardenResponseDto;
+import com.gardener.gardener.entity.Garden;
+import com.gardener.gardener.entity.PlantCulture;
 import com.gardener.gardener.entity.User;
 import com.gardener.gardener.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,6 +15,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -26,10 +32,16 @@ public class UserService {
         return mapToDto(user);
     }
 
-    public User getUserByUsername(String username) {
+    public UserDto getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + username));
-        return user;
+        return mapToDto(user);
+    }
+
+    public List<GardenResponseDto> getGardensByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + username));
+        return convertToDtoList(user.getGardens());
     }
 
     public UserDto createUser(UserDto userDTO) {
@@ -61,9 +73,21 @@ public class UserService {
         userDTO.setUserName(user.getUsername());
         userDTO.setName(user.getName());
         userDTO.setLastName(user.getLastName());
-        userDTO.setPassword(user.getPassword());
-        userDTO.setRole(user.getRole());
         return userDTO;
+    }
+
+    private GardenResponseDto mapToGardenDto(Garden garden) {
+        GardenResponseDto gardenResponseDto = new GardenResponseDto();
+        gardenResponseDto.setId(garden.getId());
+        gardenResponseDto.setName(garden.getName());
+        gardenResponseDto.setRegion(garden.getRegion());
+        return gardenResponseDto;
+    }
+
+    private List<GardenResponseDto> convertToDtoList(List<Garden> gardens) {
+        return gardens.stream()
+                .map(this::mapToGardenDto)
+                .collect(Collectors.toList());
     }
 
     private User mapToEntity(UserDto userDTO) {
@@ -71,8 +95,6 @@ public class UserService {
         user.setUsername(userDTO.getUserName());
         user.setName(userDTO.getName());
         user.setLastName(userDTO.getLastName());
-        user.setPassword(userDTO.getPassword());
-        user.setRole(userDTO.getRole());
         return user;
     }
 
@@ -80,21 +102,15 @@ public class UserService {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username){
-                return userRepository.findById(Long.valueOf(username)).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                return userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
             }
         };
     }
 
     public User create(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
-            // Заменить на свои исключения
             throw new RuntimeException("Пользователь с таким именем уже существует");
         }
-
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new RuntimeException("Пользователь с таким email уже существует");
-        }
-
         return userRepository.save(user);
     }
 
